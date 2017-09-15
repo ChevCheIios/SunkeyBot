@@ -34,6 +34,32 @@ namespace SiskoBot
             Dict dict = new Dict();
             try
             {
+            
+                Uri collectionuri = new Uri("https://tfs.bss.nvision-group.com");
+                System.Net.NetworkCredential credent = new System.Net.NetworkCredential(@"bss\rygrishi", "Parol");
+                Microsoft.TeamFoundation.Client.TfsTeamProjectCollection tfs = new Microsoft.TeamFoundation.Client.TfsTeamProjectCollection(collectionuri, credent);
+                tfs.EnsureAuthenticated();
+
+                var workitemstore = tfs.GetService<Microsoft.TeamFoundation.WorkItemTracking.Client.WorkItemStore>();
+                bool isproj = false;
+                string projName = null;
+                foreach(Microsoft.TeamFoundation.WorkItemTracking.Client.Project proj in workitemstore.Projects)
+                {
+                    if(proj.Name.ToLower() == "foris_mobile")
+                    {
+                        isproj = true;
+                        projName = proj.Name;
+                    }
+                }
+
+                var itemsQuery = workitemstore.Query( @"select System.Title, System.State, System.Id, System.CreatedBy  from WorkItems 
+                                                        where [System.TeamProject] = '" + projName +"'"
+                                                        + "and [System.WorkItemType] = 'Bug'"
+                                                        + "and [System.State] <> 'Closed'"
+                                                        + "and [System.Title] Contains '[AT]'"
+                                                        + "and [Found On Stand] = 'MSK-FORIS-60'"
+                                                        + "and [System.AssignedTo] = 'g Test Automation Team'");
+            
                 var Bot = new Telegram.Bot.TelegramBotClient(key);
                 await Bot.SetWebhookAsync("");
                 int offset = 0;
